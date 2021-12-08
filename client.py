@@ -47,13 +47,14 @@ def on_created(event):
     if event.is_directory:
         is_dir = "cd"
     updates_list.append(is_dir + local_path)
-
+    print("create_file")
 
 
 def on_deleted(event):
     global updates_list
     local_path = event.src_path.replace(sys.argv[3], '')[1:]
     updates_list.append("dd" + local_path)
+    print("delete_file")
 
 
 def on_moved(event):
@@ -64,6 +65,7 @@ def on_moved(event):
     if event.is_directory:
         is_dir = "md"
     updates_list.append(is_dir + src_path + SEPARATOR + dst_path)
+    print("move_file")
 
 
 def on_modified(event):
@@ -72,6 +74,7 @@ def on_modified(event):
     if event.is_directory is False:
         local_path = event.src_path.replace(sys.argv[3], '')[1:]
         updates_list.append(modify + local_path)
+        print("modify_file")
 
 
 def create_observer(path):
@@ -87,10 +90,24 @@ def create_observer(path):
 
     return my_observer
 
+
 def send_identity(s):
     global ID
     global CP_NUM
-    s.send(ID.encode()+CP_NUM.to_bytes(4,"big"))
+    s.send(ID.encode() + CP_NUM.to_bytes(4, "big"))
+
+
+def send_list(updates_list, s):
+    empty_list = 0
+    # move all the command in list
+    for command in updates_list:
+        # the length of the command
+        s.send(len(command).to_bytes(4, "big"))
+        # the command itself
+        s.send(command.encode())
+
+    # the list is empty
+    s.send(empty_list.to_bytes(4, "big"))
 
 
 if __name__ == '__main__':
@@ -112,7 +129,7 @@ if __name__ == '__main__':
 
             send_identity(s)
             pull(s, sys.argv[3])
-            send_list(updates_list,s)
+            send_list(updates_list, s)
             send_update(updates_list, s, sys.argv[3])
 
             s.close()

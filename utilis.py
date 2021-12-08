@@ -29,7 +29,7 @@ def pull(socket, src_path):
         size = int.from_bytes(socket.recv(4), "big")
         if size == 0:
             break
-        command = (socket.recv(size)).decode(errors='ignore')
+        command = (socket.recv(size)).decode()
         action = command[:1]
         is_dir = command[1:2]
         local_path = command[2:]
@@ -42,19 +42,13 @@ def pull(socket, src_path):
                 receive_file(full_path, socket)
 
         elif action == "d":
-            if os.path.isdir(full_path):
+            if is_dir == "d":
                 delete_dirs(full_path)
             else:
                 delete_file(full_path)
 
         elif action == "z":
-            if not os.path.isdir(full_path):
-                receive_modify(full_path, socket)
-            else:
-                # try to ignore modified in dir
-                size = socket.recv(4)
-                socket.send((0).to_bytes(4, "big"))
-
+            receive_modify(full_path, socket)
 
         elif action == "m":
             move_dir_file(src_path, local_path)
@@ -66,10 +60,16 @@ def send_file(command, path, socket):
     socket.send(len(command).to_bytes(4, "big"))
     socket.send(command.encode())
 
-    size_of_file = os.path.getsize(path)
-    socket.send(size_of_file.to_bytes(4, "big"))
+    if int.from_bytes(socket.recv(4), "big"):
+        return
 
-    # creating path for the reading txt
+    try:
+        size_of_file = os.path.getsize(path)
+    except:
+        socket.send((0).to_bytes(4, "big"))
+        return
+
+    socket.send(size_of_file.to_bytes(4, "big"))
 
     try:
         with open(path, "rb") as f:
@@ -92,14 +92,8 @@ def send_file(command, path, socket):
 
 
 def receive_file(path, socket):
-    exist = 0
-
     if os.path.exists(path):
-        exist = 1
-        socket.send(exist.to_bytes(4, "big"))
         return
-
-    socket.send(exist.to_bytes(4, "big"))
     size_bytes = socket.recv(4)
     file_size = int.from_bytes(size_bytes, "big")
     first_read = 1
@@ -155,7 +149,8 @@ def delete_file(path):
 
 def modify_file(command, path, socket):
     send_file(command, path, socket)
-    to_create = int.from_byte(socket.recv(4), "big")
+    size_bytes = socket.recv(4)
+    to_create = int.from_bytes(size_bytes, "big")
     if to_create:
         send_file(command, path, socket)
 
@@ -195,8 +190,6 @@ def receive_modify(full_path, socket):
 
         socket.send(real_modify.to_bytes(4, "big"))
         if real_modify:
-            command_size = int.from_bytes(socket.recv(4), "big")
-            command = socket.recv(command_size).decode()
             receive_file(full_path, socket)
 
     except:
@@ -220,15 +213,8 @@ def update_list(command, list):
     list.append(command)
 
 
-def send_list(updates_list, s):
-    all_commands = str(updates_list)
-    length = len(all_commands)
-    s.send(length.to_bytes(4, "big"))
-    s.send(all_commands.encode())
-
-
 def send_update(list, socket, src_path):
-    done = 0
+    empty_list = 0
     for command in list:
         if command[:2] == "cf":
             absolute_path = os.path.join(src_path, command[2:])
@@ -240,4 +226,4 @@ def send_update(list, socket, src_path):
             socket.send(len(command).to_bytes(4, "big"))
             socket.send(command.encode())
     list.clear()
-    socket.send(done.to_bytes(4, "big"))
+    socket.send(empty_list.to_bytes(4, "big"))
