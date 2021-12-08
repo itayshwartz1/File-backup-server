@@ -9,9 +9,22 @@ SEPARATOR = "<SEPARATOR>"
 check_path = ''
 
 
+def shrink_list(updates_list):
+    for i in range(len(updates_list)-1):
+        if updates_list[i][:1] == "c":
+            try:
+                src, dst = updates_list[i + 1].split(SEPARATOR)
+                if src == "m" + updates_list[i][1:]:
+                    updates_list[i] = "c" + updates_list[i][1:2] + dst
+                    updates_list.pop(i + 1)
+            except:
+                pass
+
+
 def check_duplicates(path):
     global check_path
     if path == check_path:
+        print('check_duplicates work')
         return 1
     return 0
 
@@ -38,6 +51,7 @@ def pull(socket, src_path):
         size = socket.recv(4)
         size = int.from_bytes(size, "big")
         if size == 0:
+            check_path = ''
             break
         command = (socket.recv(size)).decode()
         action = command[:1]
@@ -59,12 +73,12 @@ def pull(socket, src_path):
             else:
                 delete_file(full_path)
 
-
         elif action == "z":
             receive_modify(full_path, socket)
 
         elif action == "m":
             move_dir_file(src_path, local_path)
+
 
 
 # path the path from disk

@@ -110,6 +110,8 @@ def send_identity(s):
 
 
 def send_list(updates_list, s):
+
+    shrink_list(updates_list)
     empty_list = 0
     # move all the command in list
     for command in updates_list:
