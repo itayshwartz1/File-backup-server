@@ -102,7 +102,7 @@ def send_list(updates_list, s):
     # move all the command in list
     for command in updates_list:
         # the length of the command
-        s.send(len(command).to_bytes(4, "big"))
+        s.send((len(command.encode())).to_bytes(4,"big"))
         # the command itself
         s.send(command.encode())
 

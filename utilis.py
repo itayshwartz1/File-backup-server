@@ -48,6 +48,7 @@ def pull(socket, src_path):
             else:
                 delete_file(full_path)
 
+
         elif action == "z":
             receive_modify(full_path, socket)
 
@@ -111,7 +112,7 @@ def receive_file(path, socket):
 
 
 def send_dir(command, socket):
-    socket.send(len(command).to_bytes(4, "big"))
+    socket.send((len(command.encode())).to_bytes(4,"big"))
     socket.send(command.encode("utf-8"))
 
 
@@ -142,7 +143,7 @@ def delete_file(path):
 
 
 def send_modify(command, path, socket):
-    socket.send(len(command).to_bytes(4, "big"))
+    socket.send((len(command.encode())).to_bytes(4,"big"))
     socket.send(command.encode())
 
     send_file(command, path, socket)
@@ -221,7 +222,7 @@ def send_update(list, socket, src_path):
             absolute_path = os.path.join(src_path, command[2:])
             send_modify(command, absolute_path, socket)
         else:
-            socket.send(len(command).to_bytes(4, "big"))
+            socket.send((len(command.encode())).to_bytes(4,"big"))
             socket.send(command.encode())
     list.clear()
     socket.send(empty_list.to_bytes(4, "big"))
