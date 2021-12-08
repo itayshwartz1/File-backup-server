@@ -58,14 +58,11 @@ def pull(socket, src_path):
 # path the path from disk
 # command - action to do + path from the local folder
 def send_file(command, path, socket):
-    size = len(command).to_bytes(4, "big")
-    socket.send(size)
-    socket.send(command.encode())
 
     try:
         size_of_file = os.path.getsize(path)
     except:
-        socket.send((0).to_bytes(4, "big"))
+        socket.send(0().to_bytes(4, "big"))
         return
 
     socket.send(size_of_file.to_bytes(4, "big"))
@@ -91,9 +88,6 @@ def send_file(command, path, socket):
 
 
 def receive_file(path, socket):
-
-    command_size = int.from_bytes(socket.recv(4),"big")
-    command = socket.recv(command_size).decode()
 
     size_bytes = socket.recv(4)
     file_size = int.from_bytes(size_bytes, "big")
@@ -158,21 +152,15 @@ def send_modify(command, path, socket):
 
 
 def receive_modify(full_path, socket):
+
     # is there is change
     real_modify = 0
     if not os.path.exists(full_path):
         real_modify = 1
 
-    command_size = int.from_bytes(socket.recv(4), "big")
-    command = socket.recv(command_size).decode()
-
     size_bytes = socket.recv(4)
     size_server = int.from_bytes(size_bytes, "big")
     size_client = os.path.getsize(full_path)
-
-    # for empty file
-    first_read = True
-
 
     try:
         if size_client != size_server:
