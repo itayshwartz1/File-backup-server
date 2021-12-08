@@ -57,7 +57,7 @@ def receive_update_from_client(id, cp_num, dict, client_socket):
     string_list = [x.decode('utf-8') for x in byte_list]
     update_dict(id, cp_num, string_list, dict)
     absolute_path = os.path.dirname(id)
-    receive_update(client_socket, absolute_path)
+    pull(client_socket, absolute_path)
 
 
 if __name__ == '__main__':
@@ -74,7 +74,7 @@ if __name__ == '__main__':
 
         if id == empty_id:
             registered_new_id(client_socket, dict)
-        if cp_num == 0:
+        elif cp_num == 0:
             register_new_cp(id, client_socket, dict)
         else:
             absolute_path = os.path.dirname(id)

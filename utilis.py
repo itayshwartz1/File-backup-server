@@ -25,7 +25,7 @@ def push(socket, path):
 # src_path - the absolute path (example sys.argv[3] or id)
 def pull(socket, src_path):
     while True:
-        size = (socket.recv(4)).to_bytes(4, "big")
+        size = int.from_bytes(socket.recv(4), "big")
         if size == 0:
             break
         command = (socket.recv(size)).decode()
@@ -215,35 +215,3 @@ def send_update(list, socket, src_path):
             socket.send(command.encode())
     list.clear()
     socket.send(done.to_bytes(4, "big"))
-
-
-def receive_update(socket, absolute_path):
-    while True:
-        command_size = int.to_bytes(socket.recv(4), "big")
-        if command_size == 0:
-            break
-        command = socket.recv(command_size).decode()
-        action = command[:1]
-        is_dir = command[1:2]
-
-        full_path = absolute_path + command[2:]
-
-        if action == 'c':
-            if is_dir == 'f':
-                receive_file(full_path, socket)
-            else:
-                receive_dir(full_path, socket)
-
-        if action == 'd':
-            if is_dir == 'f':
-                delete_file(full_path, socket)
-            else:
-                delete_dirs(full_path, socket)
-
-        if action == 'z':
-            receive_modify(full_path, socket)
-
-        if action == 'm':
-            move_dir_file(absolute_path, command[2:])
-
-
