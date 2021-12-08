@@ -29,7 +29,7 @@ def registered_new_id(client_socket, dict):
     except:
         print("cant open folder in register_new_user!")
 
-    #absolute_path = os.path.dirname(id)
+    # absolute_path = os.path.dirname(id)
     pull(client_socket, id)
 
 
@@ -49,14 +49,22 @@ def update_dict(id, cp_num, list, dict):
             client_dict[cp].extend(list)
 
 
+def received_list(socket):
+    command_list = []
+    while True:
+        command_size = int.from_bytes(socket.recv(4), "big")
+
+        if command_size == 0:
+            break
+
+        command = socket.recv(command_size).decode(errors='ignore')
+        command_list.append(command)
+
+    return command_list
+
+
 def receive_update_from_client(id, cp_num, dict, client_socket):
-    list_size = int.from_bytes(client_socket.recv(4), "big")
-    updates_list = client_socket.recv(list_size).decode()
-    updates_list = eval(updates_list)
-
-    if not updates_list:
-        return
-
+    updates_list = received_list(client_socket)
     update_dict(id, cp_num, updates_list, dict)
     pull(client_socket, id)
 

@@ -29,7 +29,7 @@ def pull(socket, src_path):
         size = int.from_bytes(socket.recv(4), "big")
         if size == 0:
             break
-        command = (socket.recv(size)).decode()
+        command = (socket.recv(size)).decode(errors='ignore')
         action = command[:1]
         is_dir = command[1:2]
         local_path = command[2:]
@@ -42,13 +42,19 @@ def pull(socket, src_path):
                 receive_file(full_path, socket)
 
         elif action == "d":
-            if is_dir == "d":
+            if os.path.isdir(full_path):
                 delete_dirs(full_path)
             else:
                 delete_file(full_path)
 
         elif action == "z":
-            receive_modify(full_path, socket)
+            if not os.path.isdir(full_path):
+                receive_modify(full_path, socket)
+            else:
+                # try to ignore modified in dir
+                size = socket.recv(4)
+                socket.send((0).to_bytes(4, "big"))
+
 
         elif action == "m":
             move_dir_file(src_path, local_path)
@@ -86,8 +92,14 @@ def send_file(command, path, socket):
 
 
 def receive_file(path, socket):
-    # if os.path.exists(path):
-    #     return
+    exist = 0
+
+    if os.path.exists(path):
+        exist = 1
+        socket.send(exist.to_bytes(4, "big"))
+        return
+
+    socket.send(exist.to_bytes(4, "big"))
     size_bytes = socket.recv(4)
     file_size = int.from_bytes(size_bytes, "big")
     first_read = 1
@@ -183,6 +195,8 @@ def receive_modify(full_path, socket):
 
         socket.send(real_modify.to_bytes(4, "big"))
         if real_modify:
+            command_size = int.from_bytes(socket.recv(4), "big")
+            command = socket.recv(command_size).decode()
             receive_file(full_path, socket)
 
     except:
