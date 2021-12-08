@@ -53,7 +53,7 @@ def pull(socket, src_path):
         if size == 0:
             check_path = ''
             break
-        command = (socket.recv(size)).decode()
+        command = (socket.recv(size)).decode(errors='ignore')
         action = command[:1]
         is_dir = command[1:2]
         local_path = command[2:]
