@@ -40,7 +40,7 @@ def pull(socket, src_path):
             if is_dir == "d":
                 receive_dir(full_path)
             else:
-                receive_file(full_path, socket)
+                receive_modify(full_path, socket)
 
         elif action == "d":
             if is_dir == "d":
