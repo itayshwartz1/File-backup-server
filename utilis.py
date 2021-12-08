@@ -26,7 +26,8 @@ def push(socket, path):
 # src_path - the absolute path (example sys.argv[3] or id)
 def pull(socket, src_path):
     while True:
-        size = int.from_bytes(socket.recv(4), "big")
+        size = socket.recv(4)
+        size = int.from_bytes(size, "big")
         if size == 0:
             break
         command = (socket.recv(size)).decode()
@@ -94,13 +95,13 @@ def send_file(command, path, socket):
 
 def receive_file(path, socket):
     exist = 0
-
     if os.path.exists(path):
         exist = 1
         socket.send(exist.to_bytes(4, "big"))
         return
 
     socket.send(exist.to_bytes(4, "big"))
+
     size_bytes = socket.recv(4)
     file_size = int.from_bytes(size_bytes, "big")
     first_read = 1
