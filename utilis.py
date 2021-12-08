@@ -159,6 +159,7 @@ def receive_modify(full_path, socket):
         size_client = os.path.getsize(full_path)
     except:
         real_modify = 1
+        size_client = 0
     try:
         if size_client != size_server:
             real_modify = 1
@@ -180,13 +181,12 @@ def receive_modify(full_path, socket):
             size_server = size_server - length
 
             if size_server == 0:
-                f.close()
                 break
 
         socket.send(real_modify.to_bytes(4, "big"))
         if real_modify:
             receive_file(full_path, socket)
-
+        f.close()
     except:
         pass
 
