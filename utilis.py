@@ -61,7 +61,7 @@ def send_file(command, path, socket):
     socket.send(command.encode())
 
     size_of_file = os.path.getsize(path)
-    socket.send(size_of_file.to_bytes(4, "big", ))
+    socket.send(size_of_file.to_bytes(4, "big"))
 
     # creating path for the reading txt
 
@@ -143,7 +143,7 @@ def delete_file(path):
 
 def modify_file(command, path, socket):
     send_file(command, path, socket)
-    to_create = socket.rec(4).from_bytes(4, "big")
+    to_create = int.from_byte(socket.recv(4), "big")
     if to_create:
         send_file(command, path, socket)
 
