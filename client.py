@@ -42,6 +42,9 @@ def register():
 
 def on_created(event):
     global updates_list
+    global check_path
+    if check_duplicates(event.src_path):
+        return
     local_path = event.src_path.replace(sys.argv[3], '')[1:]
     is_dir = "cf"
     if event.is_directory:
@@ -52,6 +55,9 @@ def on_created(event):
 
 def on_deleted(event):
     global updates_list
+    global check_path
+    if check_duplicates(event.src_path):
+        return
     local_path = event.src_path.replace(sys.argv[3], '')[1:]
     updates_list.append("dd" + local_path)
     print("delete_file")
@@ -61,6 +67,9 @@ def on_moved(event):
     global updates_list
     src_path = event.src_path.replace(sys.argv[3], '')[1:]
     dst_path = event.dest_path.replace(sys.argv[3], '')[1:]
+    global check_path
+    if check_duplicates(os.path.join(src_path + SEPARATOR + dst_path)):
+        return
     is_dir = "mf"
     if event.is_directory:
         is_dir = "md"
@@ -70,6 +79,9 @@ def on_moved(event):
 
 def on_modified(event):
     global updates_list
+    global check_path
+    if check_duplicates(event.src_path):
+        return
     modify = 'zf'
     if event.is_directory is False:
         local_path = event.src_path.replace(sys.argv[3], '')[1:]
@@ -102,7 +114,7 @@ def send_list(updates_list, s):
     # move all the command in list
     for command in updates_list:
         # the length of the command
-        s.send((len(command.encode())).to_bytes(4,"big"))
+        s.send((len(command.encode())).to_bytes(4, "big"))
         # the command itself
         s.send(command.encode())
 

@@ -6,6 +6,14 @@ from watchdog.observers import Observer
 from watchdog.events import PatternMatchingEventHandler
 
 SEPARATOR = "<SEPARATOR>"
+check_path = ''
+
+
+def check_duplicates(path):
+    global check_path
+    if path == check_path:
+        return 1
+    return 0
 
 
 # path- is the path from the disk
@@ -25,6 +33,7 @@ def push(socket, path):
 
 # src_path - the absolute path (example sys.argv[3] or id)
 def pull(socket, src_path):
+    global check_path
     while True:
         size = socket.recv(4)
         size = int.from_bytes(size, "big")
@@ -36,6 +45,8 @@ def pull(socket, src_path):
         local_path = command[2:]
 
         full_path = os.path.join(src_path, local_path)
+        check_path = full_path
+
         if action == "c":
             if is_dir == "d":
                 receive_dir(full_path)
@@ -112,7 +123,7 @@ def receive_file(path, socket):
 
 
 def send_dir(command, socket):
-    socket.send((len(command.encode())).to_bytes(4,"big"))
+    socket.send((len(command.encode())).to_bytes(4, "big"))
     socket.send(command.encode("utf-8"))
 
 
@@ -143,7 +154,7 @@ def delete_file(path):
 
 
 def send_modify(command, path, socket):
-    socket.send((len(command.encode())).to_bytes(4,"big"))
+    socket.send((len(command.encode())).to_bytes(4, "big"))
     socket.send(command.encode())
 
     send_file(command, path, socket)
@@ -169,7 +180,7 @@ def receive_modify(full_path, socket):
             real_modify = 1
         try:
             f = open(full_path, "rb")
-            #with open(full_path, "rb") as f:
+            # with open(full_path, "rb") as f:
         except:
             real_modify = 1
         while True:
@@ -222,7 +233,7 @@ def send_update(list, socket, src_path):
             absolute_path = os.path.join(src_path, command[2:])
             send_modify(command, absolute_path, socket)
         else:
-            socket.send((len(command.encode())).to_bytes(4,"big"))
+            socket.send((len(command.encode())).to_bytes(4, "big"))
             socket.send(command.encode())
     list.clear()
     socket.send(empty_list.to_bytes(4, "big"))
