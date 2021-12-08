@@ -181,8 +181,8 @@ def receive_modify(full_path, socket):
                     f.close()
                     break
 
+        socket.send(real_modify.to_bytes(4, "big"))
         if real_modify:
-            socket.send(real_modify.to_bytes(4, "big"))
             receive_file(full_path, socket)
 
     except:
