@@ -14,7 +14,8 @@ def push(socket, path):
     for root, dirs, files in os.walk(path, topdown=True):
         for name in files:
             command = "cf" + (os.path.join(root, name).replace(path, ''))[1:]
-            send_file(command, path, socket)
+            current_path = os.path.join(path, command[2:])
+            send_file(command, current_path, socket)
         for name in dirs:
             command = "cd" + os.path.join(root.replace(path, '')[1:], name)
             push_dir(command, socket)
@@ -60,7 +61,10 @@ def send_file(command, path, socket):
     socket.send(command.encode())
 
     size_of_file = os.path.getsize(path)
-    socket.send(size_of_file.to_bytes(4, "big"))
+    socket.send(size_of_file.to_bytes(4, "big", ))
+
+    # creating path for the reading txt
+
     try:
         with open(path, "rb") as f:
             while True:
@@ -139,6 +143,9 @@ def delete_file(path):
 
 def modify_file(command, path, socket):
     send_file(command, path, socket)
+    to_create = socket.rec(4).from_bytes(4, "big")
+    if to_create:
+        send_file(command, path, socket)
 
 
 def receive_modify(full_path, socket):
@@ -169,17 +176,15 @@ def receive_modify(full_path, socket):
                 my_bytes = f.read(length)
                 if my_bytes != server_bytes:
                     real_modify = True
-                all_bytes = all_bytes.join([all_bytes, server_bytes])
                 size_server = size_server - length
                 if size_server == 0:
                     f.close()
                     break
 
         if real_modify:
-            with open(full_path, "wb") as f:
-                f.write(all_bytes)
-                print("modify file from server")
-                f.close()
+            socket.send(real_modify.to_bytes(4, "big"))
+            receive_file(full_path, socket)
+
     except:
         pass
 
@@ -201,14 +206,21 @@ def update_list(command, list):
     list.append(command)
 
 
+def send_list(updates_list, s):
+    all_commands = str(updates_list)
+    length = len(all_commands)
+    s.send(length.to_bytes(4, "big"))
+    s.send(all_commands.encode())
+
+
 def send_update(list, socket, src_path):
     done = 0
     for command in list:
         if command[:2] == "cf":
-            absolute_path = src_path + command[2:]
+            absolute_path = os.path.join(src_path, command[2:])
             send_file(command, absolute_path, socket)
         elif command[:2] == "zf":
-            absolute_path = src_path + command[2:]
+            absolute_path = os.path.join(src_path, command[2:])
             modify_file(command, absolute_path, socket)
         else:
             socket.send(len(command).to_bytes(4, "big"))

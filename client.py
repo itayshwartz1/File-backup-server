@@ -41,32 +41,37 @@ def register():
 
 
 def on_created(event):
+    global updates_list
     local_path = event.src_path.replace(sys.argv[3], '')[1:]
     is_dir = "cf"
     if event.is_directory:
         is_dir = "cd"
-    list.append(is_dir + local_path)
+    updates_list.append(is_dir + local_path)
+
 
 
 def on_deleted(event):
+    global updates_list
     local_path = event.src_path.replace(sys.argv[3], '')[1:]
-    list.append("dd" + local_path)
+    updates_list.append("dd" + local_path)
 
 
 def on_moved(event):
+    global updates_list
     src_path = event.src_path.replace(sys.argv[3], '')[1:]
     dst_path = event.dest_path.replace(sys.argv[3], '')[1:]
     is_dir = "mf"
     if event.is_directory:
         is_dir = "md"
-    list.append(is_dir + src_path + SEPARATOR + dst_path)
+    updates_list.append(is_dir + src_path + SEPARATOR + dst_path)
 
 
 def on_modified(event):
+    global updates_list
     modify = 'zf'
     if event.is_directory is False:
         local_path = event.src_path.replace(sys.argv[3], '')[1:]
-        list.append(modify + local_path)
+        updates_list.append(modify + local_path)
 
 
 def create_observer(path):
@@ -82,10 +87,14 @@ def create_observer(path):
 
     return my_observer
 
+def send_identity(s):
+    global ID
+    global CP_NUM
+    s.send(ID.encode()+CP_NUM.to_bytes(4,"big"))
+
 
 if __name__ == '__main__':
-    #global ID
-    #global CP_NUM
+
     my_observer = create_observer(sys.argv[3])
     my_observer.start()
     try:
@@ -99,9 +108,14 @@ if __name__ == '__main__':
         while True:
 
             time.sleep(int(sys.argv[4]))
+            print('start connection')
             s = open_socket()
+
+            send_identity(s)
             pull(s, sys.argv[3])
+            send_list(updates_list,s)
             send_update(updates_list, s, sys.argv[3])
+
             s.close()
     except KeyboardInterrupt:
         my_observer.stop()
