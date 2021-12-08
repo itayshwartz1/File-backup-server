@@ -43,7 +43,7 @@ def pull(socket, src_path):
                 receive_modify(full_path, socket)
 
         elif action == "d":
-            if is_dir == "d":
+            if os.path.isdir(full_path):
                 delete_dirs(full_path)
             else:
                 delete_file(full_path)
