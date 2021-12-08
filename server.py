@@ -85,7 +85,7 @@ if __name__ == '__main__':
         elif cp_num == 0:
             register_new_cp(id, client_socket, dict)
         else:
-            print("start connection")
+            print("start connection" + str(cp_num))
             send_update(dict[id][cp_num], client_socket, id)
             receive_update_from_client(id, cp_num, dict, client_socket)
 
