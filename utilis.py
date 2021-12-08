@@ -10,15 +10,15 @@ check_path = ''
 
 
 def shrink_list(updates_list):
-    for i in range(len(updates_list)-1):
-        if updates_list[i][:1] == "c":
-            try:
+    try:
+        for i in range(len(updates_list) - 1):
+            if updates_list[i][:1] == "c":
                 src, dst = updates_list[i + 1].split(SEPARATOR)
                 if src == "m" + updates_list[i][1:]:
                     updates_list[i] = "c" + updates_list[i][1:2] + dst
                     updates_list.pop(i + 1)
-            except:
-                pass
+    except:
+        pass
 
 
 def check_duplicates(path):
@@ -78,7 +78,6 @@ def pull(socket, src_path):
 
         elif action == "m":
             move_dir_file(src_path, local_path)
-
 
 
 # path the path from disk
