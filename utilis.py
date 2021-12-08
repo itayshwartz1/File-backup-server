@@ -156,14 +156,14 @@ def receive_modify(full_path, socket):
     first_read = True
 
     # is there is change
-    real_modify = False
+    real_modify = 0
 
     # all the bytes we got
     all_bytes = b''
 
     try:
         if size_client != size_server:
-            real_modify = True
+            real_modify = 1
 
         with open(full_path, "rb") as f:
             while True:
@@ -175,7 +175,7 @@ def receive_modify(full_path, socket):
                 #     break
                 my_bytes = f.read(length)
                 if my_bytes != server_bytes:
-                    real_modify = True
+                    real_modify = 1
                 size_server = size_server - length
                 if size_server == 0:
                     f.close()
