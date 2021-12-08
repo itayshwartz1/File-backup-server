@@ -62,6 +62,7 @@ def send_file(command, path, socket):
     socket.send(size)
     socket.send(command.encode())
 
+    # wait to the server to say if the file is exist. if exist dont send
     if int.from_bytes(socket.recv(4), "big"):
         return
 
