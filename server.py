@@ -38,8 +38,7 @@ def register_new_cp(id, client_socket, dict):
     dict[id][computer_number] = list()
     client_socket.send(id.encode("utf-8") + computer_number.to_bytes(4, "big"))
     computer_number += 1
-    absolute_path = os.path.dirname(id)
-    push(client_socket, absolute_path)
+    push(client_socket, id)
 
 
 def update_dict(id, cp_num, list, dict):

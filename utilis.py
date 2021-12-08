@@ -57,7 +57,8 @@ def pull(socket, src_path):
 # path the path from disk
 # command - action to do + path from the local folder
 def send_file(command, path, socket):
-    socket.send(len(command).to_bytes(4, "big"))
+    size = len(command).to_bytes(4, "big")
+    socket.send(size)
     socket.send(command.encode())
 
     if int.from_bytes(socket.recv(4), "big"):
