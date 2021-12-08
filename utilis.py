@@ -176,7 +176,7 @@ def send_update(list, socket, src_path):
         else:
             socket.send(len(command).to_bytes(4, "big"))
             socket.send(command.encode())
-
+    list.clear()
 
 # not sure we need it
 def delete_file(path):

@@ -97,9 +97,12 @@ if __name__ == '__main__':
 
     try:
         while True:
+
             time.sleep(int(sys.argv[4]))
-            receive_updates()
-            send_update()
+            s = open_socket()
+            pull(s, sys.argv[3])
+            send_update(updates_list, s, sys.argv[3])
+            s.close()
     except KeyboardInterrupt:
         my_observer.stop()
         my_observer.join()
