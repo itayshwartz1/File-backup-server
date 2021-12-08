@@ -29,8 +29,8 @@ def registered_new_id(client_socket, dict):
     except:
         print("cant open folder in register_new_user!")
 
-    absolute_path = os.path.dirname(id)
-    pull(client_socket, absolute_path)
+    #absolute_path = os.path.dirname(id)
+    pull(client_socket, id)
 
 
 def register_new_cp(id, client_socket, dict):
@@ -51,13 +51,14 @@ def update_dict(id, cp_num, list, dict):
 
 def receive_update_from_client(id, cp_num, dict, client_socket):
     list_size = int.from_bytes(client_socket.recv(4), "big")
-    if list_size == 0:
+    updates_list = client_socket.recv(list_size).decode()
+    updates_list = eval(updates_list)
+
+    if not updates_list:
         return
-    byte_list = client_socket.recv(list_size)
-    string_list = [x.decode('utf-8') for x in byte_list]
-    update_dict(id, cp_num, string_list, dict)
-    absolute_path = os.path.dirname(id)
-    pull(client_socket, absolute_path)
+
+    update_dict(id, cp_num, updates_list, dict)
+    pull(client_socket, id)
 
 
 if __name__ == '__main__':
@@ -77,8 +78,8 @@ if __name__ == '__main__':
         elif cp_num == 0:
             register_new_cp(id, client_socket, dict)
         else:
-            absolute_path = os.path.dirname(id)
-            send_update(dict[id][cp_num], client_socket, absolute_path)
+            print("start connection")
+            send_update(dict[id][cp_num], client_socket, id)
             receive_update_from_client(id, cp_num, dict, client_socket)
 
         client_socket.close()

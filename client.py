@@ -106,7 +106,6 @@ if __name__ == '__main__':
 
     try:
         while True:
-
             time.sleep(int(sys.argv[4]))
             print('start connection')
             s = open_socket()
