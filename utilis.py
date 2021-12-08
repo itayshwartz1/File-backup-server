@@ -15,10 +15,10 @@ def push(socket, path):
         for name in files:
             command = "cf" + (os.path.join(root, name).replace(path, ''))[1:]
             current_path = os.path.join(path, command[2:])
-            send_file(command, current_path, socket)
+            send_modify(command, current_path, socket)
         for name in dirs:
             command = "cd" + os.path.join(root.replace(path, '')[1:], name)
-            push_dir(command, socket)
+            send_dir(command, socket)
 
     socket.send(done.to_bytes(4, "big"))
 
@@ -62,10 +62,6 @@ def send_file(command, path, socket):
     socket.send(size)
     socket.send(command.encode())
 
-    # wait to the server to say if the file is exist. if exist dont send
-    if int.from_bytes(socket.recv(4), "big"):
-        return
-
     try:
         size_of_file = os.path.getsize(path)
     except:
@@ -95,17 +91,14 @@ def send_file(command, path, socket):
 
 
 def receive_file(path, socket):
-    exist = 0
-    if os.path.exists(path):
-        exist = 1
-        socket.send(exist.to_bytes(4, "big"))
-        return
 
-    socket.send(exist.to_bytes(4, "big"))
+    command_size = int.from_bytes(socket.recv(4),"big")
+    command = socket.recv(command_size).decode()
 
     size_bytes = socket.recv(4)
     file_size = int.from_bytes(size_bytes, "big")
     first_read = 1
+
     try:
         with open(path, "wb") as f:
             while True:
@@ -125,7 +118,7 @@ def receive_file(path, socket):
         pass
 
 
-def push_dir(command, socket):
+def send_dir(command, socket):
     socket.send(len(command).to_bytes(4, "big"))
     socket.send(command.encode("utf-8"))
 
@@ -156,7 +149,7 @@ def delete_file(path):
         print("delete file")
 
 
-def modify_file(command, path, socket):
+def send_modify(command, path, socket):
     send_file(command, path, socket)
     size_bytes = socket.recv(4)
     to_create = int.from_bytes(size_bytes, "big")
@@ -165,17 +158,21 @@ def modify_file(command, path, socket):
 
 
 def receive_modify(full_path, socket):
+    # is there is change
+    real_modify = 0
+    if not os.path.exists(full_path):
+        real_modify = 1
+
+    command_size = int.from_bytes(socket.recv(4), "big")
+    command = socket.recv(command_size).decode()
+
     size_bytes = socket.recv(4)
     size_server = int.from_bytes(size_bytes, "big")
     size_client = os.path.getsize(full_path)
+
     # for empty file
     first_read = True
 
-    # is there is change
-    real_modify = 0
-
-    # all the bytes we got
-    all_bytes = b''
 
     try:
         if size_client != size_server:
@@ -184,15 +181,15 @@ def receive_modify(full_path, socket):
         with open(full_path, "rb") as f:
             while True:
                 server_bytes = socket.recv(min(4096, size_server))
+
                 length = len(server_bytes)
-                # if first_read and not bytes_read:
-                #     f.truncate(0)
-                #     f.close()
-                #     break
                 my_bytes = f.read(length)
+
                 if my_bytes != server_bytes:
                     real_modify = 1
+
                 size_server = size_server - length
+
                 if size_server == 0:
                     f.close()
                     break
@@ -227,10 +224,10 @@ def send_update(list, socket, src_path):
     for command in list:
         if command[:2] == "cf":
             absolute_path = os.path.join(src_path, command[2:])
-            send_file(command, absolute_path, socket)
+            send_modify(command, absolute_path, socket)
         elif command[:2] == "zf":
             absolute_path = os.path.join(src_path, command[2:])
-            modify_file(command, absolute_path, socket)
+            send_modify(command, absolute_path, socket)
         else:
             socket.send(len(command).to_bytes(4, "big"))
             socket.send(command.encode())
