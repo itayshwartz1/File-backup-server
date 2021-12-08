@@ -58,11 +58,10 @@ def pull(socket, src_path):
 # path the path from disk
 # command - action to do + path from the local folder
 def send_file(command, path, socket):
-
     try:
         size_of_file = os.path.getsize(path)
     except:
-        socket.send(0().to_bytes(4, "big"))
+        socket.send((0).to_bytes(4, "big"))
         return
 
     socket.send(size_of_file.to_bytes(4, "big"))
@@ -88,7 +87,6 @@ def send_file(command, path, socket):
 
 
 def receive_file(path, socket):
-
     size_bytes = socket.recv(4)
     file_size = int.from_bytes(size_bytes, "big")
     first_read = 1
@@ -152,42 +150,41 @@ def send_modify(command, path, socket):
 
 
 def receive_modify(full_path, socket):
-
     # is there is change
     real_modify = 0
-    if not os.path.exists(full_path):
-        real_modify = 1
 
     size_bytes = socket.recv(4)
     size_server = int.from_bytes(size_bytes, "big")
     size_client = os.path.getsize(full_path)
-
     try:
         if size_client != size_server:
             real_modify = 1
+        try:
+            with open(full_path, "rb") as f:
+        except:
+            real_modify = 1
+        while True:
+            server_bytes = socket.recv(min(4096, size_server))
 
-        with open(full_path, "rb") as f:
-            while True:
-                server_bytes = socket.recv(min(4096, size_server))
+            length = len(server_bytes)
 
-                length = len(server_bytes)
+            if not real_modify:
                 my_bytes = f.read(length)
-
                 if my_bytes != server_bytes:
                     real_modify = 1
 
-                size_server = size_server - length
+            size_server = size_server - length
 
-                if size_server == 0:
-                    f.close()
-                    break
+            if size_server == 0:
+                f.close()
+                break
 
         socket.send(real_modify.to_bytes(4, "big"))
         if real_modify:
             receive_file(full_path, socket)
 
-    except:
-        pass
+except:
+pass
 
 
 def move_dir_file(src_path, local_path):
