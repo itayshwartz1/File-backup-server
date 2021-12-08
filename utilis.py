@@ -160,7 +160,8 @@ def receive_modify(full_path, socket):
         if size_client != size_server:
             real_modify = 1
         try:
-            with open(full_path, "rb") as f:
+            f = open(full_path, "rb")
+            #with open(full_path, "rb") as f:
         except:
             real_modify = 1
         while True:
@@ -183,8 +184,8 @@ def receive_modify(full_path, socket):
         if real_modify:
             receive_file(full_path, socket)
 
-except:
-pass
+    except:
+        pass
 
 
 def move_dir_file(src_path, local_path):
