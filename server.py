@@ -59,6 +59,7 @@ def received_list(socket):
         command = socket.recv(command_size).decode(errors='ignore')
         command_list.append(command)
 
+    shrink_list(command_list)
     return command_list
 
 
