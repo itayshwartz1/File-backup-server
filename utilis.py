@@ -155,7 +155,10 @@ def receive_modify(full_path, socket):
 
     size_bytes = socket.recv(4)
     size_server = int.from_bytes(size_bytes, "big")
-    size_client = os.path.getsize(full_path)
+    try:
+        size_client = os.path.getsize(full_path)
+    except:
+        real_modify = 1
     try:
         if size_client != size_server:
             real_modify = 1
