@@ -142,6 +142,9 @@ def delete_file(path):
 
 
 def send_modify(command, path, socket):
+    socket.send(len(command).to_bytes(4, "big"))
+    socket.send(command.encode())
+
     send_file(command, path, socket)
     size_bytes = socket.recv(4)
     to_create = int.from_bytes(size_bytes, "big")
