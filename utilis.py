@@ -8,39 +8,6 @@ from watchdog.events import PatternMatchingEventHandler
 SEPARATOR = "<SEPARATOR>"
 
 
-# path the path from disk
-# command - action to do + path from the local folder
-def send_file(command, path, socket):
-    socket.send(len(command).to_bytes(4, "big"))
-    socket.send(command.encode())
-
-    size_of_file = os.path.getsize(path)
-    socket.send(size_of_file.to_bytes(4, "big"))
-    try:
-        with open(path, "rb") as f:
-            while True:
-                # read the bytes from the file
-                bytes_read = f.read(4096)
-                # the size of the bytes
-                # bytes_len = len(bytes_read)
-                # # send the len
-                # socket.sendall(bytes_len.to_bytes(4, "big", signed=True))
-                if not bytes_read:
-                    f.close()
-                    # file transmitting is done
-                    break
-                # busy networks
-                # client_socket.sendall(bytes_read)
-                socket.send(bytes_read)
-    except:
-        pass
-
-
-def push_dir(command, socket):
-    socket.send(len(command).to_bytes(4, "big"))
-    socket.send(command.encode("utf-8"))
-
-
 # path- is the path from the disk
 def push(socket, path):
     done = 0
@@ -54,24 +21,6 @@ def push(socket, path):
 
     socket.send(done.to_bytes(4, "big"))
 
-
-def receive_dir(path):
-    try:
-        os.mkdir(path)
-        print("create dir")
-    except:
-        pass
-
-
-def delete_dirs(path):
-    for root, dirs, files in os.walk(path, topdown=False):
-        for name in files:
-            if os.path.exists(os.path.join(root, name)):
-                os.remove(os.path.join(root, name))
-                print("delete file")
-        if os.path.exists(root):
-            os.rmdir(root)
-        print("delete dir")
 
 # src_path - the absolute path (example sys.argv[3] or id)
 def pull(socket, src_path):
@@ -104,8 +53,95 @@ def pull(socket, src_path):
             move_dir_file(src_path, local_path)
 
 
-def receive_modify(full_path, socket):
+# path the path from disk
+# command - action to do + path from the local folder
+def send_file(command, path, socket):
+    socket.send(len(command).to_bytes(4, "big"))
+    socket.send(command.encode())
 
+    size_of_file = os.path.getsize(path)
+    socket.send(size_of_file.to_bytes(4, "big"))
+    try:
+        with open(path, "rb") as f:
+            while True:
+                # read the bytes from the file
+                bytes_read = f.read(4096)
+                # the size of the bytes
+                # bytes_len = len(bytes_read)
+                # # send the len
+                # socket.sendall(bytes_len.to_bytes(4, "big", signed=True))
+                if not bytes_read:
+                    f.close()
+                    # file transmitting is done
+                    break
+                # busy networks
+                # client_socket.sendall(bytes_read)
+                socket.send(bytes_read)
+    except:
+        pass
+
+
+def receive_file(path, socket):
+    # if os.path.exists(path):
+    #     return
+    size_bytes = socket.recv(4)
+    file_size = int.from_bytes(size_bytes, "big")
+    first_read = 1
+    try:
+        with open(path, "wb") as f:
+            while True:
+                bytes_read = socket.recv(min(4096, file_size))
+                if first_read and not bytes_read:
+                    f.truncate(0)
+                    f.close()
+                    break
+                f.write(bytes_read)
+                first_read = 0
+                file_size = file_size - len(bytes_read)
+                if file_size == 0:
+                    f.close()
+                    break
+        print("create_file")
+    except:
+        pass
+
+
+def push_dir(command, socket):
+    socket.send(len(command).to_bytes(4, "big"))
+    socket.send(command.encode("utf-8"))
+
+
+def receive_dir(path):
+    try:
+        os.mkdir(path)
+        print("create dir")
+    except:
+        pass
+
+
+def delete_dirs(path):
+    for root, dirs, files in os.walk(path, topdown=False):
+        for name in files:
+            if os.path.exists(os.path.join(root, name)):
+                os.remove(os.path.join(root, name))
+                print("delete file")
+        if os.path.exists(root):
+            os.rmdir(root)
+        print("delete dir")
+
+
+# not sure we need it
+def delete_file(path):
+    if os.path.exists(path):
+        os.remove(path)
+        print("delete file")
+
+
+def modify_file(command, path, socket):
+    send_file(command, path, socket)
+
+
+def receive_modify(full_path, socket):
     size_bytes = socket.recv(4)
     size_server = int.from_bytes(size_bytes, "big")
     size_client = os.path.getsize(full_path)
@@ -161,11 +197,12 @@ def move_dir_file(src_path, local_path):
         pass
 
 
-def modify_file(command, path, socket):
-    send_file(command, path, socket)
+def update_list(command, list):
+    list.append(command)
 
 
 def send_update(list, socket, src_path):
+    done = 0
     for command in list:
         if command[:2] == "cf":
             absolute_path = src_path + command[2:]
@@ -177,38 +214,36 @@ def send_update(list, socket, src_path):
             socket.send(len(command).to_bytes(4, "big"))
             socket.send(command.encode())
     list.clear()
-
-# not sure we need it
-def delete_file(path):
-    if os.path.exists(path):
-        os.remove(path)
-        print("delete file")
+    socket.send(done.to_bytes(4, "big"))
 
 
-def receive_file(path, socket):
-    # if os.path.exists(path):
-    #     return
-    size_bytes = socket.recv(4)
-    file_size = int.from_bytes(size_bytes, "big")
-    first_read = 1
-    try:
-        with open(path, "wb") as f:
-            while True:
-                bytes_read = socket.recv(min(4096, file_size))
-                if first_read and not bytes_read:
-                    f.truncate(0)
-                    f.close()
-                    break
-                f.write(bytes_read)
-                first_read = 0
-                file_size = file_size - len(bytes_read)
-                if file_size == 0:
-                    f.close()
-                    break
-        print("create_file")
-    except:
-        pass
+def receive_update(socket, absolute_path):
+    while True:
+        command_size = int.to_bytes(socket.recv(4), "big")
+        if command_size == 0:
+            break
+        command = socket.recv(command_size).decode()
+        action = command[:1]
+        is_dir = command[1:2]
+
+        full_path = absolute_path + command[2:]
+
+        if action == 'c':
+            if is_dir == 'f':
+                receive_file(full_path, socket)
+            else:
+                receive_dir(full_path, socket)
+
+        if action == 'd':
+            if is_dir == 'f':
+                delete_file(full_path, socket)
+            else:
+                delete_dirs(full_path, socket)
+
+        if action == 'z':
+            receive_modify(full_path, socket)
+
+        if action == 'm':
+            move_dir_file(absolute_path, command[2:])
 
 
-def update_list(command, list):
-    list.append(command)
