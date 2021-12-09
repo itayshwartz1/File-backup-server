@@ -33,7 +33,8 @@ def shrink_modifies(updates_list):
             if updates_list[i][:1] == "z":
                 if updates_list[i] == updates_list[i + 1]:
                     updates_list.pop(i)
-                    i = i-1
+                    i = i - 1
+            i = i + 1
     except:
         pass
 
