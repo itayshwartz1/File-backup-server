@@ -332,7 +332,7 @@ def receive_modify(full_path, socket):
 
     try:
         while True:
-
+            print('receive' + full_path)
             # the bytes that we got from server
             current_server_bytes = socket.recv(min(4096, size_server))
 
