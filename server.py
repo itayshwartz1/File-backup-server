@@ -16,16 +16,19 @@ empty_id = '00000000000000000000000000000000000000000000000000000000000000000000
 def delete_create_shrink(updates_list):
     try:
         i = 0
+        inc_i = 1
         while i < (len(updates_list)):
             j = i
             while j < (len(updates_list)):
                 if updates_list[i][:1] == "c":
-                    if updates_list[i][2:] == updates_list[j][2:] and updates_list[:1] == 'd':
+                    if updates_list[i][2:] == updates_list[j][2:] and updates_list[j][:1] == 'd':
                         updates_list.pop(i)
-                        i = i - 1
+                        inc_i = 0
                         j = j - 1
                 j = j + 1
-            i = i + 1
+
+            if inc_i:
+                i = i + 1
     except:
         pass
 
@@ -37,6 +40,7 @@ def delete_create_shrink(updates_list):
 # ===============================================================================
 def random_string():
     character_set = string.ascii_uppercase + string.ascii_lowercase + string.digits
+    return 'BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
     return ''.join(random.choice(character_set) for i in range(128))
 
 
