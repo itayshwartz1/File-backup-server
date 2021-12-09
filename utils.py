@@ -51,7 +51,6 @@ def check_duplicates(path):
         return 1
     return 0
 
-
 # path- is the path from the disk
 def push(socket, path):
     done = 0
