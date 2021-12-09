@@ -12,6 +12,34 @@ counter = 1
 BUFFER_SIZE = 50000
 
 
+def shrink_commands(updates_list):
+    try:
+        # index for command that not create modify and move
+        i = 0
+        # if to increase i
+        inc_i = 1
+        while i < (len(updates_list)):
+            # index for command "delete"
+            j = i
+            # for all the commands after the current i command
+            while j < (len(updates_list)):
+                # if the command not delete
+                if updates_list[i][:1] != "d":
+                    # check if there is delete in the rest of the list
+                    if updates_list[i][2:] == updates_list[j][2:] and updates_list[j][:1] == 'd':
+                        # pop the current command
+                        updates_list.pop(i)
+                        # don't increase i
+                        inc_i = 0
+                        # don't increase i
+                        j = j - 1
+                # increase j every loop
+                j = j + 1
+            # increase i if we didn't fount match
+            if inc_i:
+                i = i + 1
+    except:
+        pass
 # ===============================================================================
 # shrink_list - this function shrink the list - if command from some update appear in the black list - so
 # is mean that the watch dog jump about action that the sender told him to to - so we prevent sending back the data,
@@ -414,6 +442,7 @@ def update_list(command, list):
 def send_update(list, socket, src_path):
     empty_list = 0
     shrink_modifies(list)
+    shrink_commands(list)
     # moving all commands in list
     for command in list:
 
