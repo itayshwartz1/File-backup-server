@@ -329,12 +329,19 @@ def update_list(command, list):
 def send_update(list, socket, src_path):
     empty_list = 0
     for command in list:
+
         if command[:2] == "cf":
             absolute_path = os.path.join(src_path, command[2:])
+            socket.send((len(command.encode()).to_bytes(4, "big")))
+            socket.send(command.encode())
             send_file(command, absolute_path, socket)
+
         elif command[:2] == "zf":
             absolute_path = os.path.join(src_path, command[2:])
+            socket.send((len(command.encode()).to_bytes(4, "big")))
+            socket.send(command.encode())
             send_modify(command, absolute_path, socket)
+
         else:
             socket.send((len(command.encode())).to_bytes(4, "big"))
             socket.send(command.encode())
