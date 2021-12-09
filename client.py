@@ -14,6 +14,11 @@ SEPARATOR = "<SEPARATOR>"
 updates_list = []
 black_list = []
 
+
+# ===============================================================================
+#
+#
+# ===============================================================================
 def open_socket():
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.connect((sys.argv[1], int(sys.argv[2])))
@@ -112,7 +117,6 @@ def send_identity(s):
 
 
 def send_list(s):
-
     global updates_list
 
     empty_list = 0
