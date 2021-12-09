@@ -205,6 +205,7 @@ def send_identity(s):
 #
 # s -the socket to connect the server
 # ===============================================================================
+
 def send_list(s):
     global updates_list
     shrink_modifies(update_list)
