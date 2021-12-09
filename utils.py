@@ -134,7 +134,7 @@ def send_file(command, path, socket):
                 # read the bytes from the file
                 bytes_read = f.read(4096)
 
-                # if we finish to read we close the file and get out
+
                 if not bytes_read:
                     f.close()
                     break
@@ -196,88 +196,126 @@ def receive_file(path, socket):
                 f.close()
                 break
 
-
 # ===============================================================================
+# send_dir - send command to create dir
 #
-#
+# command - the command of the dir that will create
+# socket - the connection to the receiver
 # ===============================================================================
 def send_dir(command, socket):
+    # encode the commands
     socket.send((len(command.encode())).to_bytes(4, "big"))
     socket.send(command.encode("utf-8"))
 
-
 # ===============================================================================
+# receive_dir -  create dir
 #
-#
+# path - the path of the dir that will create
 # ===============================================================================
 def receive_dir(path):
     try:
+        # try to create dir - if not exist
         os.mkdir(path)
         print("create dir")
     except:
         pass
 
-
 # ===============================================================================
+# delete_dirs - move all the dirs and file below the dir we want to delete by using
+# recursion
 #
-#
+# path - the path of the dir that will delete
 # ===============================================================================
 def delete_dirs(path):
+    # pass all the objects below the wanted dir
     for root, dirs, files in os.walk(path, topdown=False):
+
+        # delete all the files if exist
         for name in files:
             if os.path.exists(os.path.join(root, name)):
                 os.remove(os.path.join(root, name))
                 print("delete file")
+
+        # delete root dir if exist
         if os.path.exists(root):
             os.rmdir(root)
         print("delete dir")
 
 
-# not sure we need it
 # ===============================================================================
+# delete_file - delete file from the receiver folder. if the file/dir exist delete it
 #
-#
+# path - the path of the file that will delete
 # ===============================================================================
 def delete_file(path):
+    # if the file exist
     if os.path.exists(path):
+        # remove the file
         os.remove(path)
         print("delete file")
 
 
 # ===============================================================================
+# send_modify - the func send to send file - the func here for distinguish the commands
+# that got
 #
-#
+# command - the command from the sender
+# path - the path of the file
+# socket - the connection to the receiver
 # ===============================================================================
 def send_modify(command, path, socket):
     send_file(command, path, socket)
 
 
 # ===============================================================================
+# receive_modify - the func receive the file check if the file changed
+# if the file changed override the file else we changed nothing
 #
-#
+# full_path - the path of the file that we need to check
+# socket - the connection to the server
 # ===============================================================================
 def receive_modify(full_path, socket):
-    socket.send((0).to_bytes(4, "big"))
+    get_file = 0
 
+    # send the sender to send a file
+    socket.send((get_file).to_bytes(4, "big"))
+
+    # send the size of the file
     size_bytes = socket.recv(4)
     size_server = int.from_bytes(size_bytes, "big")
+
+    # variable to save the file that got from sender
     server_file = b''
 
     try:
         while True:
+
+            # the bytes that we got from server
             current_server_bytes = socket.recv(min(4096, size_server))
-            # server_file.join(current_server_bytes)
+
+            # add the bytes to variable- save the file that got
             server_file = server_file + current_server_bytes
 
+            # the len of the bytes already read
             length = len(current_server_bytes)
+
+            # the size of the file that left to get
             size_server = size_server - length
 
+            # if there are no more bytes break
             if size_server == 0:
                 break
+
+        # open the file that already exist in the receiver
         client_file = open(full_path, 'rb')
+
+        # read all his content
         file_temp = client_file.read()
         client_file.close()
+
+        # check if the content are equal to the content that got from server
         if file_temp != server_file:
+            # if the content is difference override the old file and write new one
             client_file = open(full_path, 'wb')
             client_file.write(server_file)
             client_file.close()
@@ -288,15 +326,24 @@ def receive_modify(full_path, socket):
 
 
 # ===============================================================================
+# move_dir_file - rename files and dirs
 #
-#
+# src_path - the path of the main dir
+# local_path - the path of the file/dir inside the main folder
 # ===============================================================================
 def move_dir_file(src_path, local_path):
     try:
+
+        # split the name of the file/dir that changed and the new name
         src, dst = local_path.split(SEPARATOR)
+
+        # create the path of the dir/file
         src = os.path.join(src_path, src)
+
+        # create the path of the dir/file after the name change
         dst = os.path.join(src_path, dst)
 
+        # change the name of teh dir/file
         os.rename(src, dst)
         print("move file from server")
 
@@ -305,35 +352,67 @@ def move_dir_file(src_path, local_path):
 
 
 # ===============================================================================
+# update_list - add command to the list
 #
-#
+# command - the command we want to add
+# list - the list we want to add the command to it
 # ===============================================================================
 def update_list(command, list):
     list.append(command)
 
 
 # ===============================================================================
+# send_update - the func send the changes that done from list to the receiver . for changes of create
+# or modify files the func send the new file. for others commands it send the command and the
+# receiver did the command. in the end the func send the list done
 #
-#
+# list- the list that the sender did
+# socket - the connection tho the receiver
+# src_path - the path of the sender - for ability to send files
 # ===============================================================================
 def send_update(list, socket, src_path):
     empty_list = 0
+
+    # moving all commands in list
     for command in list:
 
+        # if the command it to create file
         if command[:2] == "cf":
+
+            # find the path of the sender folder
             absolute_path = os.path.join(src_path, command[2:])
+
+            # send the len of the command
             socket.send((len(command.encode()).to_bytes(4, "big")))
+
+            # send the command
             socket.send(command.encode())
+
+            # send the file to the receiver
             send_file(command, absolute_path, socket)
 
+        # if the command it to modify file
         elif command[:2] == "zf":
+            # find the path of the sender folder
             absolute_path = os.path.join(src_path, command[2:])
+
+            # send the len of the command
             socket.send((len(command.encode()).to_bytes(4, "big")))
+
+            # send the command
             socket.send(command.encode())
+
+            # send the file to the receiver
             send_modify(command, absolute_path, socket)
 
+        # for all the others commands
         else:
+            #
             socket.send((len(command.encode())).to_bytes(4, "big"))
             socket.send(command.encode())
+
+    # clear the list
     list.clear()
+
+    # send the that the list empty
     socket.send(empty_list.to_bytes(4, "big"))
