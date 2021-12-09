@@ -10,18 +10,28 @@ check_path = ''
 counter = 1
 
 
-# def shrink_list(updates_list):
-#     try:
-#         for i in range(len(updates_list) - 1):
-#             if updates_list[i][:1] == "c":
-#                 src, dst = updates_list[i + 1].split(SEPARATOR)
-#                 if src == "m" + updates_list[i][1:]:
-#                     updates_list[i] = "c" + updates_list[i][1:2] + dst
-#                     updates_list.pop(i + 1)
-#     except:
-#         pass
+def shrink_create_modifies(updates_list):
+    try:
+        for i in range(len(updates_list)):
+            if updates_list[i][:2] == "cf":
+                if updates_list[i][:2] == updates_list[i + 1][:2] and updates_list[i + 1][:1] == 'z':
+                    updates_list.pop(i)
+    except:
+        pass
+
+def shrink_modifies(updates_list):
+    try:
+        for i in range(len(updates_list)):
+            if updates_list[i][:1] == "z":
+                if updates_list[i] == updates_list[i + 1]:
+                    updates_list.pop(i)
+    except:
+        pass
+    shrink_create_modifies(updates_list)
+
 
 def shrink_list(updates_list, black_list):
+    shrink_modifies(updates_list)
     try:
         for i in range(len(updates_list)):
             for j in range(len(black_list)):
@@ -94,7 +104,7 @@ def pull(socket, src_path, black_list):
         elif action == "m":
             move_dir_file(src_path, local_path)
         print(counter)
-        counter = counter+1
+        counter = counter + 1
 
 
 # path the path from disk
@@ -155,6 +165,7 @@ def receive_file(path, socket):
             if file_size == 0:
                 f.close()
                 break
+
 
 def send_dir(command, socket):
     socket.send((len(command.encode())).to_bytes(4, "big"))
@@ -271,4 +282,3 @@ def send_update(list, socket, src_path):
             socket.send(command.encode())
     list.clear()
     socket.send(empty_list.to_bytes(4, "big"))
-
