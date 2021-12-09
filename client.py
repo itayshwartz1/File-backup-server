@@ -33,6 +33,7 @@ def register():
     identity = s.recv(132)
     ID = identity[:128].decode("utf-8")
     CP_NUM = int.from_bytes(identity[128:132], "big")
+
     if to_push:
         push(s, sys.argv[3])
     else:
@@ -126,6 +127,9 @@ def send_list(updates_list, s):
 
 if __name__ == '__main__':
 
+    os.mkdir(sys.argv[3])
+
+    print('dir-done')
     my_observer = create_observer(sys.argv[3])
     my_observer.start()
     try:
