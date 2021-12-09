@@ -16,8 +16,8 @@ empty_id = '00000000000000000000000000000000000000000000000000000000000000000000
 def delete_create_shrink(updates_list):
     try:
         i = 0
-        inc_i = 1
         while i < (len(updates_list)):
+            inc_i = 1
             j = i
             while j < (len(updates_list)):
                 if updates_list[i][:1] == "c":
@@ -145,6 +145,9 @@ def receive_update_from_client(id, cp_num, dict, client_socket):
 
     # delete unused commands
     delete_create_shrink(updates_list)
+
+    # remove multiple modify
+    shrink_modifies(updates_list)
 
     # update the dict with new commands
     update_dict(id, cp_num, updates_list, dict)
