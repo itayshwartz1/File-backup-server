@@ -12,10 +12,12 @@ counter = 1
 
 
 # ===============================================================================
-# shrink_list - this function shrink the list - if command from the update list appear in the black list - so
-# is mean that the watch dog jump about action that the server told him to to - so we prevent sending back the data
-# so we pop the command from
+# shrink_list - this function shrink the list - if command from some update appear in the black list - so
+# is mean that the watch dog jump about action that the sender told him to to - so we prevent sending back the data,
+# return 1 and pop the command from the black list
 #
+# command- command that we need to check if appear in the black list.
+# black_list - list of commands that the sender told us to do
 # ===============================================================================
 def shrink_list(command, black_list):
     # shrink_modifies(updates_list)
@@ -27,8 +29,9 @@ def shrink_list(command, black_list):
 
 # path- is the path from the disk
 # ===============================================================================
+# push - this function send all the files and directories from a given path to receiver on given socket
 #
-#
+# socket - socket to sent
 # ===============================================================================
 def push(socket, path):
     done = 0
