@@ -27,6 +27,7 @@ def shrink_list(command, black_list):
             return 1
 
 
+
 def shrink_modifies(updates_list):
     try:
         i = 0
