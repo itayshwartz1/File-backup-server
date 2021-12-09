@@ -127,15 +127,13 @@ def send_list(updates_list, s):
 
 if __name__ == '__main__':
 
-    os.mkdir(sys.argv[3])
-
-    print('dir-done')
-    my_observer = create_observer(sys.argv[3])
-    my_observer.start()
     try:
         ID = sys.argv[5]
+        os.mkdir(sys.argv[3])
     except:
         pass
+    my_observer = create_observer(sys.argv[3])
+    my_observer.start()
     register()
     print(ID)
 
