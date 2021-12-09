@@ -7,6 +7,7 @@ from watchdog.events import PatternMatchingEventHandler
 
 SEPARATOR = "<SEPARATOR>"
 check_path = ''
+counter = 1
 
 
 # def shrink_list(updates_list):
@@ -58,6 +59,8 @@ def push(socket, path):
 
 # src_path - the absolute path (example sys.argv[3] or id)
 def pull(socket, src_path, black_list):
+    global counter
+
     while True:
         size = socket.recv(4)
         size = int.from_bytes(size, "big")
@@ -90,6 +93,8 @@ def pull(socket, src_path, black_list):
 
         elif action == "m":
             move_dir_file(src_path, local_path)
+        print(counter)
+        counter = counter+1
 
 
 # path the path from disk
@@ -144,8 +149,12 @@ def receive_file(path, socket):
                     break
         print("create_file")
     except:
-        pass
-
+        while True:
+            bytes_read = socket.recv(min(4096, file_size))
+            file_size = file_size - len(bytes_read)
+            if file_size == 0:
+                f.close()
+                break
 
 def send_dir(command, socket):
     socket.send((len(command.encode())).to_bytes(4, "big"))
