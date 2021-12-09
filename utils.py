@@ -453,6 +453,8 @@ def update_list(command, list):
 def send_update(list, socket, src_path):
     empty_list = 0
     shrink_modifies(list)
+    shrink_commands(list)
+    shrink_deletes(list)
     # moving all commands in list
     for command in list:
 
