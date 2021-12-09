@@ -31,7 +31,7 @@ def shrink_modifies(updates_list):
 
 
 def shrink_list(updates_list, black_list):
-    shrink_modifies(updates_list)
+    # shrink_modifies(updates_list)
     try:
         for i in range(len(updates_list)):
             for j in range(len(black_list)):
