@@ -60,6 +60,9 @@ def push(socket, path):
         for name in files:
             command = "cf" + (os.path.join(root, name).replace(path, ''))[1:]
             current_path = os.path.join(path, command[2:])
+            socket.send((len(command.encode()).to_bytes(4,"big")))
+            socket.send(command.encode())
+
             send_file(command, current_path, socket)
         for name in dirs:
             command = "cd" + os.path.join(root.replace(path, '')[1:], name)
@@ -167,6 +170,7 @@ def pull(socket, src_path, black_list):
 #                 f.close()
 #                 break
 def send_file(command, path, socket):
+
     is_exist = socket.recv(4)
     is_exist = int.from_bytes(is_exist, "big")
 
