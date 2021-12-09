@@ -10,6 +10,7 @@ from utils import *
 
 garbage_list = []
 computer_number = 1
+delete_list = []
 empty_id = '00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
 
 # ===============================================================================
@@ -34,6 +35,7 @@ def registered_new_id(client_socket, dict):
     global computer_number
     # we make random string that will be the id of the user
     id = random_string()
+    print(id)
     try:
         # we make directory to all the files that the user will upload
         os.makedirs(id)
@@ -47,7 +49,7 @@ def registered_new_id(client_socket, dict):
         client_socket.send(id.encode("utf-8") + computer_number.to_bytes(4, "big"))
         computer_number += 1
     except:
-        print("cant open folder in register_new_user!")
+        pass
     # absolute_path = id
     path = id
     # upload the user directory to the server
@@ -108,6 +110,32 @@ def received_list(socket):
     return command_list
 
 
+
+def avoid_delete_cycles(updates_list, id):
+    try:
+        global delete_list
+        global dict
+        i = 0
+        while i < len(updates_list):
+            if updates_list[i][:1] == 'd':
+                delete_list.append(updates_list[i])
+            elif updates_list[i][:1] == 'c' or  updates_list[i][:1] == 'z':
+                check_size = len(dict[id])*2 - 1
+                for command in reversed(delete_list):
+                    check_size = check_size - 1
+                    if command[2:] != updates_list[i][2:]:
+                        break
+                    if check_size == 0:
+                        updates_list.pop(i)
+            i = i + 1
+    except:
+        pass
+
+
+
+
+
+
 # ===============================================================================
 # receive_update_from_client - this function received update from client
 #
@@ -121,6 +149,8 @@ def receive_update_from_client(id, cp_num, dict, client_socket):
 
     # create update list from client
     updates_list = received_list(client_socket)
+
+    avoid_delete_cycles(updates_list, id)
 
     # update the dict with new commands
     update_dict(id, cp_num, updates_list, dict)
@@ -159,7 +189,6 @@ if __name__ == '__main__':
             register_new_cp(id, client_socket, dict)
         # we know the client - so we send to him updates that accrued, and get from the client his changes.
         else:
-            print("start connection" + str(cp_num))
             send_update(dict[id][cp_num], client_socket, id)
             receive_update_from_client(id, cp_num, dict, client_socket)
 
