@@ -20,7 +20,6 @@ empty_id = '00000000000000000000000000000000000000000000000000000000000000000000
 # ===============================================================================
 def random_string():
     character_set = string.ascii_uppercase + string.ascii_lowercase + string.digits
-    return 'BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
     return ''.join(random.choice(character_set) for i in range(128))
 
 
@@ -111,7 +110,7 @@ def received_list(socket):
 
 
 
-def avoid_delete_cycles(updates_list, id):
+def avoid_delete_cycles(updates_list, id, cp_num):
     try:
         global delete_list
         global dict
@@ -127,6 +126,7 @@ def avoid_delete_cycles(updates_list, id):
                         break
                     if check_size == 0:
                         updates_list.pop(i)
+                        dict[id][cp_num].append(command)
             i = i + 1
     except:
         pass
@@ -150,7 +150,7 @@ def receive_update_from_client(id, cp_num, dict, client_socket):
     # create update list from client
     updates_list = received_list(client_socket)
 
-    avoid_delete_cycles(updates_list, id)
+    avoid_delete_cycles(updates_list, id, cp_num)
 
     # update the dict with new commands
     update_dict(id, cp_num, updates_list, dict)
