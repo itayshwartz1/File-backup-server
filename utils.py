@@ -289,12 +289,13 @@ def receive_modify(full_path, socket):
     try:
         while True:
             current_server_bytes = socket.recv(min(4096, size_server))
-            server_file = server_file.join(server_file, current_server_bytes)
+            #server_file.join(current_server_bytes)
+            server_file = server_file.join([server_file, current_server_bytes])
 
             length = len(current_server_bytes)
-            current_server_bytes = size_server - length
+            size_server = size_server - length
 
-            if current_server_bytes == 0:
+            if size_server == 0:
                 break
         client_file = open(full_path, 'rb')
         if client_file.read() != server_file:
