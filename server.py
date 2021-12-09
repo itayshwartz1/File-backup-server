@@ -6,6 +6,8 @@ import os
 import time
 from utils import *
 
+garbage_list = []
+
 computer_number = 1
 empty_id = '00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
 
@@ -29,8 +31,9 @@ def registered_new_id(client_socket, dict):
     except:
         print("cant open folder in register_new_user!")
 
-    # absolute_path = os.path.dirname(id)
-    pull(client_socket, id)
+    # absolute_path = id
+    path = id
+    pull(client_socket, path, garbage_list)
 
 
 def register_new_cp(id, client_socket, dict):
@@ -64,9 +67,10 @@ def received_list(socket):
 
 
 def receive_update_from_client(id, cp_num, dict, client_socket):
+    garbage_list = []
     updates_list = received_list(client_socket)
     update_dict(id, cp_num, updates_list, dict)
-    pull(client_socket, id)
+    pull(client_socket, id, garbage_list)
 
 
 if __name__ == '__main__':
