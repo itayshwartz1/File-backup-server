@@ -20,12 +20,19 @@ counter = 1
 # black_list - list of commands that the sender told us to do
 # ===============================================================================
 def shrink_list(command, black_list):
-    # shrink_modifies(updates_list)
     for i in range(len(black_list)):
         if command == black_list[i]:
             black_list.pop(i)
             return 1
 
+def shrink_modifies(updates_list):
+    try:
+        for i in range(len(updates_list)):
+            if updates_list[i][:1] == "z":
+                if updates_list[i] == updates_list[i + 1]:
+                    updates_list.pop(i)
+    except:
+        pass
 
 # ===============================================================================
 # push - this function send all the files and directories from a given path to receiver on given socket
@@ -134,7 +141,6 @@ def send_file(command, path, socket):
                 # read the bytes from the file
                 bytes_read = f.read(4096)
 
-
                 if not bytes_read:
                     f.close()
                     break
@@ -196,6 +202,7 @@ def receive_file(path, socket):
                 f.close()
                 break
 
+
 # ===============================================================================
 # send_dir - send command to create dir
 #
@@ -206,6 +213,7 @@ def send_dir(command, socket):
     # encode the commands
     socket.send((len(command.encode())).to_bytes(4, "big"))
     socket.send(command.encode("utf-8"))
+
 
 # ===============================================================================
 # receive_dir -  create dir
@@ -219,6 +227,7 @@ def receive_dir(path):
         print("create dir")
     except:
         pass
+
 
 # ===============================================================================
 # delete_dirs - move all the dirs and file below the dir we want to delete by using
@@ -253,6 +262,35 @@ def delete_file(path):
         # remove the file
         os.remove(path)
         print("delete file")
+
+
+# ===============================================================================
+# read_file - read file from file that exist in the receiver folder
+#
+# path - the path of the file
+# the func return the file of bytes
+# ===============================================================================
+def read_file(path):
+    # the size of the read bytes
+    buffer_size = 100000
+
+    # the all file
+    all_file = b''
+    try:
+        file = open(path, 'rb')
+        while True:
+            file_bytes = file.read(buffer_size)
+
+            # add the bytes that read
+            all_file = all_file + file_bytes
+            if not file_bytes:
+                break
+        file.close()
+    except:
+        pass
+
+    # return the file bytes
+    return all_file
 
 
 # ===============================================================================
@@ -307,14 +345,10 @@ def receive_modify(full_path, socket):
                 break
 
         # open the file that already exist in the receiver
-        client_file = open(full_path, 'rb')
-
-        # read all his content
-        file_temp = client_file.read()
-        client_file.close()
+        client_file = read_file(full_path)
 
         # check if the content are equal to the content that got from server
-        if file_temp != server_file:
+        if client_file != server_file:
             # if the content is difference override the old file and write new one
             client_file = open(full_path, 'wb')
             client_file.write(server_file)
@@ -372,7 +406,7 @@ def update_list(command, list):
 # ===============================================================================
 def send_update(list, socket, src_path):
     empty_list = 0
-
+    shrink_modifies(list)
     # moving all commands in list
     for command in list:
 
