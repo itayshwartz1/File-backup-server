@@ -9,16 +9,31 @@ SEPARATOR = "<SEPARATOR>"
 check_path = ''
 
 
-def shrink_list(updates_list):
+
+# def shrink_list(updates_list):
+#     try:
+#         for i in range(len(updates_list) - 1):
+#             if updates_list[i][:1] == "c":
+#                 src, dst = updates_list[i + 1].split(SEPARATOR)
+#                 if src == "m" + updates_list[i][1:]:
+#                     updates_list[i] = "c" + updates_list[i][1:2] + dst
+#                     updates_list.pop(i + 1)
+#     except:
+#         pass
+
+def shrink_list(updates_list,black_list):
     try:
         for i in range(len(updates_list) - 1):
-            if updates_list[i][:1] == "c":
-                src, dst = updates_list[i + 1].split(SEPARATOR)
-                if src == "m" + updates_list[i][1:]:
-                    updates_list[i] = "c" + updates_list[i][1:2] + dst
-                    updates_list.pop(i + 1)
+            for j in range(len(black_list) - 1):
+                if update_list[i] == black_list[j]:
+                    updates_list.pop(i)
+                    black_list.pop(j)
+                    print('delete from black list')
+                    break
     except:
         pass
+
+
 
 
 def check_duplicates(path):
@@ -45,13 +60,12 @@ def push(socket, path):
 
 
 # src_path - the absolute path (example sys.argv[3] or id)
-def pull(socket, src_path):
-    global check_path
+def pull(socket, src_path, black_list):
     while True:
         size = socket.recv(4)
         size = int.from_bytes(size, "big")
         if size == 0:
-            check_path = ''
+            # check_path = ''
             break
         command = (socket.recv(size)).decode(errors='ignore')
         action = command[:1]
@@ -59,7 +73,8 @@ def pull(socket, src_path):
         local_path = command[2:]
 
         full_path = os.path.join(src_path, local_path)
-        check_path = full_path
+        # check_path = full_path
+        black_list.append(command)
 
         if action == "c":
             if is_dir == "d":

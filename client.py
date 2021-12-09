@@ -12,6 +12,7 @@ my_observer = None
 empty_id = '00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
 SEPARATOR = "<SEPARATOR>"
 updates_list = []
+black_list = []
 
 
 def open_socket():
@@ -44,8 +45,8 @@ def register():
 def on_created(event):
     global updates_list
     global check_path
-    if check_duplicates(event.src_path):
-        return
+    # if check_duplicates(event.src_path):
+    #     return
     local_path = event.src_path.replace(sys.argv[3], '')[1:]
     is_dir = "cf"
     if event.is_directory:
@@ -57,8 +58,8 @@ def on_created(event):
 def on_deleted(event):
     global updates_list
     global check_path
-    if check_duplicates(event.src_path):
-        return
+    # if check_duplicates(event.src_path):
+    #     return
     local_path = event.src_path.replace(sys.argv[3], '')[1:]
     updates_list.append("dd" + local_path)
     print("delete_file")
@@ -69,8 +70,8 @@ def on_moved(event):
     src_path = event.src_path.replace(sys.argv[3], '')[1:]
     dst_path = event.dest_path.replace(sys.argv[3], '')[1:]
     global check_path
-    if check_duplicates(os.path.join(src_path + SEPARATOR + dst_path)):
-        return
+    # if check_duplicates(os.path.join(src_path + SEPARATOR + dst_path)):
+    #     return
     is_dir = "mf"
     if event.is_directory:
         is_dir = "md"
@@ -81,8 +82,8 @@ def on_moved(event):
 def on_modified(event):
     global updates_list
     global check_path
-    if check_duplicates(event.src_path):
-        return
+    # if check_duplicates(event.src_path):
+    #     return
     modify = 'zf'
     if event.is_directory is False:
         local_path = event.src_path.replace(sys.argv[3], '')[1:]
@@ -110,9 +111,10 @@ def send_identity(s):
     s.send(ID.encode() + CP_NUM.to_bytes(4, "big"))
 
 
-def send_list(updates_list, s):
-
-    shrink_list(updates_list)
+def send_list(s):
+    global black_list
+    global updates_list
+    shrink_list(updates_list, black_list)
     empty_list = 0
     # move all the command in list
     for command in updates_list:
@@ -145,7 +147,7 @@ if __name__ == '__main__':
 
             send_identity(s)
             pull(s, sys.argv[3])
-            send_list(updates_list, s)
+            send_list(s)
             send_update(updates_list, s, sys.argv[3])
 
             s.close()
