@@ -74,7 +74,7 @@ def receive_update_from_client(id, cp_num, dict, client_socket):
 
 if __name__ == '__main__':
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server.bind(('', 12345))
+    server.bind(('', 12346))
     server.listen(5)
     dict = {}
     while True:
