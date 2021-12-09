@@ -276,6 +276,8 @@ def send_modify(command, path, socket):
 
 
 def receive_modify(full_path, socket):
+    socket.send((0).to_bytes(4, "big"))
+
     size_bytes = socket.recv(4)
     size_server = int.from_bytes(size_bytes, "big")
     server_file = b''
@@ -290,7 +292,7 @@ def receive_modify(full_path, socket):
 
             if current_server_bytes == 0:
                 break
-        client_file = open(full_path,'rb')
+        client_file = open(full_path, 'rb')
         if client_file.read() != server_file:
             client_file.close()
             client_file = open(full_path, 'wb')
@@ -325,7 +327,7 @@ def send_update(list, socket, src_path):
     for command in list:
         if command[:2] == "cf":
             absolute_path = os.path.join(src_path, command[2:])
-            send_modify(command, absolute_path, socket)
+            send_file(command, absolute_path, socket)
         elif command[:2] == "zf":
             absolute_path = os.path.join(src_path, command[2:])
             send_modify(command, absolute_path, socket)
