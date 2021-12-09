@@ -19,6 +19,7 @@ def shrink_create_modifies(updates_list):
     except:
         pass
 
+
 def shrink_modifies(updates_list):
     try:
         for i in range(len(updates_list)):
@@ -51,6 +52,7 @@ def check_duplicates(path):
         return 1
     return 0
 
+
 # path- is the path from the disk
 def push(socket, path):
     done = 0
@@ -58,7 +60,7 @@ def push(socket, path):
         for name in files:
             command = "cf" + (os.path.join(root, name).replace(path, ''))[1:]
             current_path = os.path.join(path, command[2:])
-            send_modify(command, current_path, socket)
+            send_file(command, current_path, socket)
         for name in dirs:
             command = "cd" + os.path.join(root.replace(path, '')[1:], name)
             send_dir(command, socket)
@@ -83,13 +85,13 @@ def pull(socket, src_path, black_list):
 
         full_path = os.path.join(src_path, local_path)
         # check_path = full_path
-        black_list.append(command)
+        # black_list.append(command)
 
         if action == "c":
             if is_dir == "d":
                 receive_dir(full_path)
             else:
-                receive_modify(full_path, socket)
+                receive_file(full_path, socket)
 
         elif action == "d":
             if os.path.isdir(full_path):
@@ -108,7 +110,68 @@ def pull(socket, src_path, black_list):
 
 # path the path from disk
 # command - action to do + path from the local folder
+# def send_file(command, path, socket):
+#     try:
+#         size_of_file = os.path.getsize(path)
+#     except:
+#         socket.send((0).to_bytes(4, "big"))
+#         return
+#
+#     socket.send(size_of_file.to_bytes(4, "big"))
+#
+#     try:
+#         with open(path, "rb") as f:
+#             while True:
+#                 # read the bytes from the file
+#                 bytes_read = f.read(4096)
+#                 # the size of the bytes
+#                 # bytes_len = len(bytes_read)
+#                 # # send the len
+#                 # socket.sendall(bytes_len.to_bytes(4, "big", signed=True))
+#                 if not bytes_read:
+#                     f.close()
+#                     # file transmitting is done
+#                     break
+#                 # busy networks
+#                 # client_socket.sendall(bytes_read)
+#                 socket.send(bytes_read)
+#     except:
+#         pass
+
+
+# def receive_file(path, socket):
+#     size_bytes = socket.recv(4)
+#     file_size = int.from_bytes(size_bytes, "big")
+#     first_read = 1
+#
+#     try:
+#         with open(path, "wb") as f:
+#             while True:
+#                 bytes_read = socket.recv(min(4096, file_size))
+#                 if first_read and not bytes_read:
+#                     f.truncate(0)
+#                     f.close()
+#                     break
+#                 f.write(bytes_read)
+#                 first_read = 0
+#                 file_size = file_size - len(bytes_read)
+#                 if file_size == 0:
+#                     f.close()
+#                     break
+#         print("create_file")
+#     except:
+#         while True:
+#             bytes_read = socket.recv(min(4096, file_size))
+#             file_size = file_size - len(bytes_read)
+#             if file_size == 0:
+#                 f.close()
+#                 break
 def send_file(command, path, socket):
+    is_exist = socket.recv(4)
+    is_exist = int.from_bytes(is_exist, "big")
+
+    if is_exist:
+        return
     try:
         size_of_file = os.path.getsize(path)
     except:
@@ -138,10 +201,15 @@ def send_file(command, path, socket):
 
 
 def receive_file(path, socket):
+    if os.path.exists(path):
+        socket.send((1).to_bytes(4, "big"))
+        return
+
+    socket.send((0).to_bytes(4, "big"))
+
     size_bytes = socket.recv(4)
     file_size = int.from_bytes(size_bytes, "big")
     first_read = 1
-
     try:
         with open(path, "wb") as f:
             while True:
@@ -198,54 +266,39 @@ def delete_file(path):
 
 
 def send_modify(command, path, socket):
-    socket.send((len(command.encode())).to_bytes(4, "big"))
-    socket.send(command.encode())
-
+    # socket.send((len(command.encode())).to_bytes(4, "big"))
+    # socket.send(command.encode())
     send_file(command, path, socket)
-    size_bytes = socket.recv(4)
-    to_create = int.from_bytes(size_bytes, "big")
-    if to_create:
-        send_file(command, path, socket)
+    # size_bytes = socket.recv(4)
+    # to_create = int.from_bytes(size_bytes, "big")
+    # if to_create:
+    #     send_file(command, path, socket)
 
 
 def receive_modify(full_path, socket):
-    # is there is change
-    real_modify = 0
-
     size_bytes = socket.recv(4)
     size_server = int.from_bytes(size_bytes, "big")
+    server_file = b''
+
     try:
-        size_client = os.path.getsize(full_path)
-    except:
-        real_modify = 1
-        size_client = 0
-    try:
-        if size_client != size_server:
-            real_modify = 1
-        try:
-            f = open(full_path, "rb")
-            # with open(full_path, "rb") as f:
-        except:
-            real_modify = 1
         while True:
-            server_bytes = socket.recv(min(4096, size_server))
+            current_server_bytes = socket.recv(min(4096, size_server))
+            server_file = server_file.join(server_file, current_server_bytes)
 
-            length = len(server_bytes)
+            length = len(current_server_bytes)
+            current_server_bytes = size_server - length
 
-            if not real_modify:
-                my_bytes = f.read(length)
-                if my_bytes != server_bytes:
-                    real_modify = 1
-
-            size_server = size_server - length
-
-            if size_server == 0:
+            if current_server_bytes == 0:
                 break
+        client_file = open(full_path,'rb')
+        if client_file.read() != server_file:
+            client_file.close()
+            client_file = open(full_path, 'wb')
+            client_file.write(server_file)
+            client_file.close()
+        else:
+            client_file.close()
 
-        socket.send(real_modify.to_bytes(4, "big"))
-        if real_modify:
-            receive_file(full_path, socket)
-        f.close()
     except:
         pass
 

@@ -114,7 +114,7 @@ def send_identity(s):
 def send_list(s):
     global black_list
     global updates_list
-    shrink_list(updates_list, black_list)
+    # shrink_list(updates_list, black_list)
     empty_list = 0
     # move all the command in list
     for command in updates_list:
