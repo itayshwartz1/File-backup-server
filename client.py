@@ -209,6 +209,7 @@ def send_list(s):
     global updates_list
     shrink_modifies(update_list)
     shrink_commands(updates_list)
+    shrink_deletes(updates_list)
     empty_list = 0
     # move all the command in list
     for command in updates_list:

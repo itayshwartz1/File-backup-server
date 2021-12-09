@@ -16,9 +16,9 @@ def shrink_commands(updates_list):
     try:
         # index for command that not create modify and move
         i = 0
-        # if to increase i
-        inc_i = 1
         while i < (len(updates_list)):
+            # if to increase i
+            inc_i = 1
             # index for command "delete"
             j = i
             # for all the commands after the current i command
@@ -54,6 +54,17 @@ def shrink_list(command, black_list):
             black_list.pop(i)
             return 1
 
+def shrink_deletes(updates_list):
+    try:
+        i = 0
+        while i < (len(updates_list)):
+            if updates_list[i][:1] == "d":
+                if updates_list[i] == updates_list[i + 1]:
+                    updates_list.pop(i)
+                    i = i - 1
+            i = i + 1
+    except:
+        pass
 
 
 def shrink_modifies(updates_list):
@@ -443,6 +454,7 @@ def send_update(list, socket, src_path):
     empty_list = 0
     shrink_modifies(list)
     shrink_commands(list)
+    shrink_deletes(list)
     # moving all commands in list
     for command in list:
 
