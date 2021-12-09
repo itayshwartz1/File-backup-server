@@ -9,7 +9,6 @@ SEPARATOR = "<SEPARATOR>"
 check_path = ''
 
 
-
 # def shrink_list(updates_list):
 #     try:
 #         for i in range(len(updates_list) - 1):
@@ -21,19 +20,17 @@ check_path = ''
 #     except:
 #         pass
 
-def shrink_list(updates_list,black_list):
+def shrink_list(updates_list, black_list):
     try:
-        for i in range(len(updates_list) - 1):
-            for j in range(len(black_list) - 1):
-                if update_list[i] == black_list[j]:
+        for i in range(len(updates_list)):
+            for j in range(len(black_list)):
+                if updates_list[i] == black_list[j]:
                     updates_list.pop(i)
                     black_list.pop(j)
                     print('delete from black list')
                     break
     except:
         pass
-
-
 
 
 def check_duplicates(path):

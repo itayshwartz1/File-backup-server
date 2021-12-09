@@ -25,6 +25,7 @@ def register():
     global ID
     global CP_NUM
     global empty_id
+    global black_list
 
     to_push = 0
     if ID == empty_id:
@@ -38,7 +39,7 @@ def register():
     if to_push:
         push(s, sys.argv[3])
     else:
-        pull(s, sys.argv[3])
+        pull(s, sys.argv[3], black_list)
     s.close()
 
 
@@ -146,7 +147,7 @@ if __name__ == '__main__':
             s = open_socket()
 
             send_identity(s)
-            pull(s, sys.argv[3])
+            pull(s, sys.argv[3], black_list)
             send_list(s)
             send_update(updates_list, s, sys.argv[3])
 
