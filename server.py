@@ -12,27 +12,6 @@ garbage_list = []
 computer_number = 1
 empty_id = '00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
 
-
-def delete_create_shrink(updates_list):
-    try:
-        i = 0
-        while i < (len(updates_list)):
-            inc_i = 1
-            j = i
-            while j < (len(updates_list)):
-                if updates_list[i][:1] == "c":
-                    if updates_list[i][2:] == updates_list[j][2:] and updates_list[j][:1] == 'd':
-                        updates_list.pop(i)
-                        inc_i = 0
-                        j = j - 1
-                j = j + 1
-
-            if inc_i:
-                i = i + 1
-    except:
-        pass
-
-
 # ===============================================================================
 # random_string - this function create random string in length 128 that contains letters and numbers.
 #
@@ -142,12 +121,6 @@ def receive_update_from_client(id, cp_num, dict, client_socket):
 
     # create update list from client
     updates_list = received_list(client_socket)
-
-    # delete unused commands
-    delete_create_shrink(updates_list)
-
-    # remove multiple modify
-    shrink_modifies(updates_list)
 
     # update the dict with new commands
     update_dict(id, cp_num, updates_list, dict)
