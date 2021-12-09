@@ -299,13 +299,12 @@ def receive_modify(full_path, socket):
                 break
         client_file = open(full_path, 'rb')
         file_temp = client_file.read()
+        client_file.close()
         if file_temp != server_file:
-            client_file.close()
             client_file = open(full_path, 'wb')
             client_file.write(server_file)
             client_file.close()
-        else:
-            client_file.close()
+
 
     except:
         pass
