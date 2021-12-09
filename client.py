@@ -44,13 +44,13 @@ def register():
 
 def on_created(event):
     global updates_list
-    global check_path
-    # if check_duplicates(event.src_path):
-    #     return
+    global black_list
     local_path = event.src_path.replace(sys.argv[3], '')[1:]
     is_dir = "cf"
     if event.is_directory:
         is_dir = "cd"
+    if shrink_list(is_dir + local_path, black_list):
+        return
     updates_list.append(is_dir + local_path)
     print("create_file")
 
@@ -112,9 +112,9 @@ def send_identity(s):
 
 
 def send_list(s):
-    global black_list
+
     global updates_list
-    # shrink_list(updates_list, black_list)
+
     empty_list = 0
     # move all the command in list
     for command in updates_list:

@@ -31,18 +31,12 @@ def shrink_modifies(updates_list):
     shrink_create_modifies(updates_list)
 
 
-def shrink_list(updates_list, black_list):
+def shrink_list(command, black_list):
     # shrink_modifies(updates_list)
-    try:
-        for i in range(len(updates_list)):
-            for j in range(len(black_list)):
-                if updates_list[i] == black_list[j]:
-                    updates_list.pop(i)
-                    black_list.pop(j)
-                    print('delete from black list')
-                    break
-    except:
-        pass
+    for black_command in black_list:
+        if command == black_command:
+            black_list.pop(black_command)
+            return 1
 
 
 def check_duplicates(path):
@@ -60,7 +54,7 @@ def push(socket, path):
         for name in files:
             command = "cf" + (os.path.join(root, name).replace(path, ''))[1:]
             current_path = os.path.join(path, command[2:])
-            socket.send((len(command.encode()).to_bytes(4,"big")))
+            socket.send((len(command.encode()).to_bytes(4, "big")))
             socket.send(command.encode())
 
             send_file(command, current_path, socket)
@@ -79,7 +73,6 @@ def pull(socket, src_path, black_list):
         size = socket.recv(4)
         size = int.from_bytes(size, "big")
         if size == 0:
-            # check_path = ''
             break
         command = (socket.recv(size)).decode(errors='ignore')
         action = command[:1]
@@ -91,6 +84,7 @@ def pull(socket, src_path, black_list):
         # black_list.append(command)
 
         if action == "c":
+            black_list.append(command)
             if is_dir == "d":
                 receive_dir(full_path)
             else:
@@ -170,7 +164,6 @@ def pull(socket, src_path, black_list):
 #                 f.close()
 #                 break
 def send_file(command, path, socket):
-
     is_exist = socket.recv(4)
     is_exist = int.from_bytes(is_exist, "big")
 
@@ -289,7 +282,7 @@ def receive_modify(full_path, socket):
     try:
         while True:
             current_server_bytes = socket.recv(min(4096, size_server))
-            #server_file.join(current_server_bytes)
+            # server_file.join(current_server_bytes)
             server_file = server_file + current_server_bytes
 
             length = len(current_server_bytes)
