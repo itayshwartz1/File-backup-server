@@ -271,3 +271,4 @@ def send_update(list, socket, src_path):
             socket.send(command.encode())
     list.clear()
     socket.send(empty_list.to_bytes(4, "big"))
+
