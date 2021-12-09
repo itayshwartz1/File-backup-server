@@ -298,7 +298,8 @@ def receive_modify(full_path, socket):
             if size_server == 0:
                 break
         client_file = open(full_path, 'rb')
-        if client_file.read() != server_file:
+        file_temp = client_file.read()
+        if file_temp != server_file:
             client_file.close()
             client_file = open(full_path, 'wb')
             client_file.write(server_file)
