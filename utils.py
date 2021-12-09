@@ -40,6 +40,8 @@ def shrink_commands(updates_list):
                 i = i + 1
     except:
         pass
+
+
 # ===============================================================================
 # shrink_list - this function shrink the list - if command from some update appear in the black list - so
 # is mean that the watch dog jump about action that the sender told him to to - so we prevent sending back the data,
@@ -53,6 +55,7 @@ def shrink_list(command, black_list):
         if command == black_list[i]:
             black_list.pop(i)
             return 1
+
 
 def shrink_deletes(updates_list):
     try:
@@ -237,7 +240,6 @@ def receive_file(path, socket):
                 if file_size == 0:
                     f.close()
                     break
-        print("create_file")
     # if problem had accrue when we receiving, we continue to received the amount of bytes that the server sent - that
     # how we keep the synchronize of the sender-receiver
     except:
@@ -270,7 +272,6 @@ def receive_dir(path):
     try:
         # try to create dir - if not exist
         os.mkdir(path)
-        print("create dir")
     except:
         pass
 
@@ -289,12 +290,11 @@ def delete_dirs(path):
         for name in files:
             if os.path.exists(os.path.join(root, name)):
                 os.remove(os.path.join(root, name))
-                print("delete file")
 
         # delete root dir if exist
         if os.path.exists(root):
             os.rmdir(root)
-        print("delete dir")
+
 
 
 # ===============================================================================
@@ -307,7 +307,7 @@ def delete_file(path):
     if os.path.exists(path):
         # remove the file
         os.remove(path)
-        print("delete file")
+
 
 
 # ===============================================================================
@@ -373,7 +373,7 @@ def receive_modify(full_path, socket):
 
     try:
         while True:
-            print('receive' + full_path)
+
             # the bytes that we got from server
             current_server_bytes = socket.recv(min(BUFFER_SIZE, size_server))
 
@@ -425,7 +425,6 @@ def move_dir_file(src_path, local_path):
 
         # change the name of teh dir/file
         os.rename(src, dst)
-        print("move file from server")
 
     except:
         pass

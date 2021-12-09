@@ -96,7 +96,6 @@ def on_created(event):
         return
     # add the command to list that will send to server
     updates_list.append(is_dir + local_path)
-    print("create_file")
 
 
 # ===============================================================================
@@ -113,7 +112,6 @@ def on_deleted(event):
 
     # add the command to list that will send to server
     updates_list.append("dd" + local_path)
-    print("delete_file")
 
 
 # ===============================================================================
@@ -137,7 +135,6 @@ def on_moved(event):
 
     # add the command to list that will send to server
     updates_list.append(is_dir + src_path + SEPARATOR + dst_path)
-    print("move_file")
 
 
 # ===============================================================================
@@ -158,7 +155,6 @@ def on_modified(event):
 
         # add to the list
         updates_list.append(modify + local_path)
-        print("modify_file")
 
 
 # ===============================================================================
@@ -247,16 +243,13 @@ if __name__ == '__main__':
 
     # register the client
     register()
-    print(ID)
 
     try:
-
         # appeal to the server for limited time
         while True:
 
             # the time that the client need to wait
             time.sleep(int(sys.argv[4]))
-            print('start connection')
 
             # creating new connection to the server pull changes and send updates
             s = open_socket()
