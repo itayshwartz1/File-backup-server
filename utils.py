@@ -1,3 +1,5 @@
+# Noam Tzuberi 313374837 and Itay Shwartz 318528171
+
 import os
 import sys
 import time
@@ -9,7 +11,12 @@ SEPARATOR = "<SEPARATOR>"
 counter = 1
 
 
-
+# ===============================================================================
+# shrink_list - this function shrink the list - if command from the update list appear in the black list - so
+# is mean that the watch dog jump about action that the server told him to to - so we prevent sending back the data
+# so we pop the command from
+#
+# ===============================================================================
 def shrink_list(command, black_list):
     # shrink_modifies(updates_list)
     for i in range(len(black_list)):
@@ -19,6 +26,10 @@ def shrink_list(command, black_list):
 
 
 # path- is the path from the disk
+# ===============================================================================
+#
+#
+# ===============================================================================
 def push(socket, path):
     done = 0
     for root, dirs, files in os.walk(path, topdown=True):
@@ -37,6 +48,10 @@ def push(socket, path):
 
 
 # src_path - the absolute path (example sys.argv[3] or id)
+# ===============================================================================
+#
+#
+# ===============================================================================
 def pull(socket, src_path, black_list):
     global counter
 
@@ -76,7 +91,10 @@ def pull(socket, src_path, black_list):
         counter = counter + 1
 
 
-
+# ===============================================================================
+#
+#
+# ===============================================================================
 def send_file(command, path, socket):
     is_exist = socket.recv(4)
     is_exist = int.from_bytes(is_exist, "big")
@@ -109,6 +127,10 @@ def send_file(command, path, socket):
         pass
 
 
+# ===============================================================================
+#
+#
+# ===============================================================================
 def receive_file(path, socket):
     if os.path.exists(path):
         socket.send((1).to_bytes(4, "big"))
@@ -142,12 +164,18 @@ def receive_file(path, socket):
                 f.close()
                 break
 
-
+# ===============================================================================
+#
+#
+# ===============================================================================
 def send_dir(command, socket):
     socket.send((len(command.encode())).to_bytes(4, "big"))
     socket.send(command.encode("utf-8"))
 
-
+# ===============================================================================
+#
+#
+# ===============================================================================
 def receive_dir(path):
     try:
         os.mkdir(path)
@@ -155,7 +183,10 @@ def receive_dir(path):
     except:
         pass
 
-
+# ===============================================================================
+#
+#
+# ===============================================================================
 def delete_dirs(path):
     for root, dirs, files in os.walk(path, topdown=False):
         for name in files:
@@ -168,18 +199,28 @@ def delete_dirs(path):
 
 
 # not sure we need it
+# ===============================================================================
+#
+#
+# ===============================================================================
 def delete_file(path):
     if os.path.exists(path):
         os.remove(path)
         print("delete file")
 
-
+# ===============================================================================
+#
+#
+# ===============================================================================
 def send_modify(command, path, socket):
 
     send_file(command, path, socket)
 
 
-
+# ===============================================================================
+#
+#
+# ===============================================================================
 def receive_modify(full_path, socket):
     socket.send((0).to_bytes(4, "big"))
 
@@ -210,7 +251,10 @@ def receive_modify(full_path, socket):
     except:
         pass
 
-
+# ===============================================================================
+#
+#
+# ===============================================================================
 def move_dir_file(src_path, local_path):
     try:
         src, dst = local_path.split(SEPARATOR)
@@ -223,11 +267,17 @@ def move_dir_file(src_path, local_path):
     except:
         pass
 
-
+# ===============================================================================
+#
+#
+# ===============================================================================
 def update_list(command, list):
     list.append(command)
 
-
+# ===============================================================================
+#
+#
+# ===============================================================================
 def send_update(list, socket, src_path):
     empty_list = 0
     for command in list:
