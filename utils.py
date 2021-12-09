@@ -9,6 +9,7 @@ from watchdog.events import PatternMatchingEventHandler
 
 SEPARATOR = "<SEPARATOR>"
 counter = 1
+BUFFER_SIZE = 50000
 
 
 # ===============================================================================
@@ -144,7 +145,7 @@ def send_file(command, path, socket):
         with open(path, "rb") as f:
             while True:
                 # read the bytes from the file
-                bytes_read = f.read(50000)
+                bytes_read = f.read(BUFFER_SIZE)
 
                 if not bytes_read:
                     f.close()
@@ -177,8 +178,8 @@ def receive_file(path, socket):
         # open new file on the path as f
         with open(path, "wb") as f:
             while True:
-                # received bytes from the sender - 50000 or file_size
-                bytes_read = socket.recv(min(50000, file_size))
+                # received bytes from the sender - BUFFER_SIZE or file_size
+                bytes_read = socket.recv(min(BUFFER_SIZE, file_size))
 
                 # if it the first read, and we dont get any bytes, we truncate the file, close it and break
                 if first_read and not bytes_read:
@@ -201,7 +202,7 @@ def receive_file(path, socket):
     # how we keep the synchronize of the sender-receiver
     except:
         while True:
-            bytes_read = socket.recv(min(50000, file_size))
+            bytes_read = socket.recv(min(BUFFER_SIZE, file_size))
             file_size = file_size - len(bytes_read)
             if file_size == 0:
                 f.close()
@@ -334,7 +335,7 @@ def receive_modify(full_path, socket):
         while True:
             print('receive' + full_path)
             # the bytes that we got from server
-            current_server_bytes = socket.recv(min(50000, size_server))
+            current_server_bytes = socket.recv(min(BUFFER_SIZE, size_server))
 
             # add the bytes to variable- save the file that got
             server_file = server_file + current_server_bytes
