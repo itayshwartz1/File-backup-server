@@ -25,14 +25,18 @@ def shrink_list(command, black_list):
             black_list.pop(i)
             return 1
 
+
 def shrink_modifies(updates_list):
     try:
-        for i in range(len(updates_list)):
+        i = 0
+        while i < (len(updates_list)):
             if updates_list[i][:1] == "z":
                 if updates_list[i] == updates_list[i + 1]:
                     updates_list.pop(i)
+                    i = i-1
     except:
         pass
+
 
 # ===============================================================================
 # push - this function send all the files and directories from a given path to receiver on given socket
