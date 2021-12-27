@@ -167,7 +167,7 @@ def receive_update_from_client(id, cp_num, dict, client_socket):
 if __name__ == '__main__':
     # create new socket
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server.bind(('', 12346))
+    server.bind(('', int(sys.argv[1])))
     # the server can
     server.listen(5)
     # create new dictionary that contains the data about all the users (id, cp, updates to do)
